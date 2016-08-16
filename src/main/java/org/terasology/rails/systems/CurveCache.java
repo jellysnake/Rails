@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.rails.minecarts.components;
-
-import org.terasology.entitySystem.Component;
-import org.terasology.rails.tracks.CubicBezier;
-import org.terasology.reflection.MappedContainer;
-import org.terasology.rendering.nui.properties.OneOf;
-
-import java.util.List;
-import java.util.Set;
+package org.terasology.rails.systems;
 
 /**
- * Created by michaelpollind on 8/15/16.
+ * Created by michaelpollind on 8/16/16.
  */
-public class PathDescriptorComponent implements Component {
-    public List<CubicBezier> bezierCurve;
-
-
+public class CurveCache {
 }
