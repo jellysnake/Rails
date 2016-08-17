@@ -15,10 +15,12 @@
  */
 package org.terasology.rails.tracks;
 
+import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.rendering.logic.FloatingTextComponent;
+import org.terasology.world.WorldProvider;
 
 import javax.sound.midi.Track;
 import java.util.ArrayList;
@@ -30,7 +32,6 @@ public abstract class TrackSegment {
 
     private CubicBezier[] curves;
     private  float[] argLengths;
-    private  float maxDistance;
 
     public static class TrackSegmentPair
     {
@@ -66,7 +67,6 @@ public abstract class TrackSegment {
                 previous = current;
             }
             this.argLengths[x] = distance;
-            maxDistance += distance;
         }
     }
 
@@ -117,13 +117,13 @@ public abstract class TrackSegment {
 
     public  float getMaxDistance()
     {
-        return  maxDistance;
+        return  argLengths[argLengths.length -1];
     }
 
 
-    public  Vector3f getPoint(float t,EntityRef ref)
+    public  Vector3f getPoint(float t,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        TrackSegmentPair pair =  getTrackSegment(t,ref);
+        TrackSegmentPair pair =  getTrackSegment(t,ref,  worldProvider,  entityManager);
         if(pair.segment == null)
             return null;
         int index= pair.segment.getIndex(pair.t);
@@ -131,74 +131,66 @@ public abstract class TrackSegment {
     }
 
 
-    public Vector3f getPoint(float t,Vector3f position,Quat4f rotation,EntityRef ref)
+    public Vector3f getPoint(float t,Vector3f position,Quat4f rotation,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        return rotation.rotate(getPoint(t,ref)).add(position);
+        return rotation.rotate(getPoint(t,ref,  worldProvider,  entityManager)).add(position);
     }
 
-    public  Vector3f getTangent(float t,EntityRef ref)
+    public  Vector3f getTangent(float t,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        TrackSegmentPair pair =  getTrackSegment(t,ref);
+        TrackSegmentPair pair =  getTrackSegment(t,ref,  worldProvider,  entityManager);
         if(pair.segment == null)
             return null;
         int index= pair.segment.getIndex(pair.t);
         return pair.segment.curves[index].getTangent(pair.segment.getT(index,pair.t));
     }
 
-    public Vector3f getTangent(float t,Quat4f rotation,EntityRef ref)
+    public Vector3f getTangent(float t,Quat4f rotation,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        return rotation.rotate(getTangent(t,ref));
+        return rotation.rotate(getTangent(t,ref,  worldProvider,  entityManager));
     }
 
-    public  Vector3f getBinormal(float t,EntityRef ref)
+    public  Vector3f getBinormal(float t,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        TrackSegmentPair pair =  getTrackSegment(t,ref);
+        TrackSegmentPair pair =  getTrackSegment(t,ref,  worldProvider,  entityManager);
         if(pair.segment == null)
             return null;
         int index= pair.segment.getIndex(pair.t);
         return pair.segment.curves[index].getBinormal(pair.segment.getT(index,pair.t));
     }
 
-    public Vector3f getBinormal(float t,Quat4f rotation,EntityRef ref)
+    public Vector3f getBinormal(float t,Quat4f rotation,EntityRef ref,WorldProvider worldProvider, EntityManager entityManager)
     {
-        return rotation.rotate(getBinormal(t,ref));
+        return rotation.rotate(getBinormal(t,ref,worldProvider,entityManager));
     }
 
-    public TrackSegmentPair getTrackSegment(float t,EntityRef ref)
+    public TrackSegmentPair getTrackSegment(float t, EntityRef ref, WorldProvider worldProvider, EntityManager entityManager)
     {
 
-        TrackSegment previous = this.getPreviousSegment(ref);
-        TrackSegment next = this.getNextSegment(ref);
+        TrackSegment previous = this.getPreviousSegment(ref,  worldProvider,  entityManager);
+        TrackSegment next = this.getNextSegment(ref,  worldProvider,  entityManager);
 
         int index = getIndex(t);
 
         if(index == argLengths.length)
         {
-            float result = maxDistance-t;
-            if(invertSegment(this,next))
-                result = next.maxDistance - result;
+            float result = this.getMaxDistance()-t;
+            if(invertSegment(this,next,  worldProvider,  entityManager))
+                result = next.getMaxDistance() - result;
 
             return  new TrackSegmentPair(result,next);
         }
         else if(index == -1)
         {
-            boolean invert = invertSegment(previous,this);
-
             float result = previous.getMaxDistance()+t;
-            if(invertSegment(this,next))
-                result = previous.maxDistance - result;
+            if(invertSegment(previous,this,  worldProvider,  entityManager))
+                result = previous.getMaxDistance() - result;
 
-            return  new TrackSegmentPair(previous.getMaxDistance()+t,previous);
+            return  new TrackSegmentPair(result,previous);
         }
-        boolean invert = invertSegment(previous,next);
-
-        if(invert)
-            t = this.maxDistance - t;
-
         return  new TrackSegmentPair(t,this);
-
     }
-    public  abstract  boolean invertSegment(TrackSegment previous,TrackSegment next);
-    public abstract TrackSegment getNextSegment(EntityRef ref);
-    public abstract TrackSegment getPreviousSegment(EntityRef ref);
+    public  abstract  boolean invertSegment(TrackSegment previous,TrackSegment next, WorldProvider worldProvider, EntityManager entityManager);
+    public abstract TrackSegment getNextSegment(EntityRef ref, WorldProvider worldProvider, EntityManager entityManager);
+    public abstract TrackSegment getPreviousSegment(EntityRef ref, WorldProvider worldProvider, EntityManager entityManager);
 }

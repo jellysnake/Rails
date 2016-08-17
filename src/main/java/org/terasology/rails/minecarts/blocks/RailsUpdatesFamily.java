@@ -43,8 +43,6 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
     private TByteObjectMap<RailBlockTrackSegment[]> railSegments;
     private byte connectionSides;
 
-
-
     public RailsUpdatesFamily(ConnectionCondition connectionCondition, BlockUri blockUri,
                               List<String> categories, Block archetypeBlock, TByteObjectMap<Block> blocks, byte connectionSides, TByteObjectMap<RailBlockTrackSegment[]> railSegments) {
 
@@ -54,6 +52,7 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
         this.blocks = blocks;
         this.connectionSides = connectionSides;
         this.railSegments = railSegments;
+
         for (Block block : blocks.valueCollection()) {
             block.setBlockFamily(this);
         }
@@ -73,7 +72,7 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
         return blocks.get(getByteConnections(worldProvider, blockEntityRegistry, location));
     }
 
-    public RailBlockTrackSegment getRailSegment(BlockUri uri)
+    public RailBlockTrackSegment getRailSegment(BlockUri uri,WorldProvider world)
     {
         byte connections = Byte.parseByte(uri.getIdentifier().toString());
         return railSegments.get(connections)[0];
