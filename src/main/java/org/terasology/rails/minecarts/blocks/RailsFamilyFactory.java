@@ -26,6 +26,9 @@ import org.terasology.math.Side;
 import org.terasology.math.SideBitFlag;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.naming.Name;
+import org.terasology.rails.minecarts.components.PathDescriptorComponent;
+import org.terasology.rails.tracks.CubicBezier;
+import org.terasology.rails.tracks.TrackSegment;
 import org.terasology.registry.In;
 import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
@@ -67,6 +70,8 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
 
     private ConnectionCondition connectionCondition;
     private byte connectionSides;
+
+    TByteObjectMap<RailBlockTrackSegment[]> segments = new TByteObjectHashMap<>();
 
     public RailsFamilyFactory() {
         connectionCondition = new RailsConnectionCondition();
@@ -116,7 +121,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
 
         final Block archetypeBlock = blocksForConnections.get(SideBitFlag.getSides(Side.RIGHT, Side.LEFT));
         return new RailsUpdatesFamily(connectionCondition, blockUri, definition.getCategories(),
-                archetypeBlock, blocksForConnections, (byte) (connectionSides & 0b111110));
+                archetypeBlock, blocksForConnections, (byte) (connectionSides & 0b111110),segments);
     }
 
     protected void addConnections(TByteObjectMap<String>[] basicBlocks, int index, String connections) {
@@ -140,7 +145,22 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
             final String section = blockDefinitionIterator.value();
             Rotation rot = getRotationToAchieve(originalConnections, connections);
             if (rot != null) {
-                return blockBuilder.constructTransformedBlock(definition, section, rot);
+
+                Block block = blockBuilder.constructTransformedBlock(definition, section, rot);
+                PathDescriptorComponent component = block.getPrefab().get().getComponent(PathDescriptorComponent.class);
+
+
+                RailBlockTrackSegment[] temp = new RailBlockTrackSegment[component.descriptors.size()];
+                for(int x = 0; x < component.descriptors.size(); x++)
+                {
+                    CubicBezier[] bezierPath = new CubicBezier[component.descriptors.get(0).path.size()];
+                    component.descriptors.get(x).path.toArray(bezierPath);
+
+                    temp[x] = new RailBlockTrackSegment(bezierPath,component.descriptors.get(x),rot);
+
+                }
+                segments.put(connections,temp);
+                return block;
             }
         }
         return null;

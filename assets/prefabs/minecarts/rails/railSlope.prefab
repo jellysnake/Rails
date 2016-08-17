@@ -1,5 +1,24 @@
 {
     "ConnectsToRails": {
         "type": "SLOPE"
+    },
+    "PathDescriptor" :
+    {
+        "descriptors" :
+        [
+            {
+                "path" : [
+                    {
+                        "f1": [0,-0.468750,0.500],
+                        "f2": [0,0,0],
+                        "f3": [0,0,0],
+                        "f4": [0,0.468750,0.5000]
+                    }
+
+                ],
+              "start" : "BACK",
+              "end" : "TOP"
+            }
+        ]
     }
 }

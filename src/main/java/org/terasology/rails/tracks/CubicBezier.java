@@ -16,15 +16,20 @@
 package org.terasology.rails.tracks;
 
 import org.terasology.math.geom.Vector3f;
+import org.terasology.network.Replicate;
 import org.terasology.reflection.MappedContainer;
 
 import java.util.List;
 
 @MappedContainer
 public class CubicBezier {
+    @Replicate
     Vector3f f1;
+    @Replicate
     Vector3f f2;
+    @Replicate
     Vector3f f3;
+    @Replicate
     Vector3f f4;
 
     public CubicBezier(Vector3f f1, Vector3f f2, Vector3f f3, Vector3f f4)

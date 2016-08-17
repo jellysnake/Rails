@@ -15,6 +15,7 @@
  */
 package org.terasology.rails.tracks;
 
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.rendering.logic.FloatingTextComponent;
@@ -31,19 +32,19 @@ public abstract class TrackSegment {
     private  float[] argLengths;
     private  float maxDistance;
 
-    public  static class TrackSegmentPair
+    public static class TrackSegmentPair
     {
-        int index;
         float t;
         TrackSegment segment;
 
-        public  TrackSegmentPair(float t, TrackSegment segment,int index)
+        public  TrackSegmentPair(float t, TrackSegment segment)
         {
-            this.index = index;
             this.t = t;
             this.segment = segment;
         }
     }
+
+
 
     public TrackSegment(CubicBezier[] curves) {
         this.curves = curves;
@@ -79,8 +80,8 @@ public abstract class TrackSegment {
             for(int y = 0; y <= ARC_SEGMENT_ITERATIONS; y++)
             {
                 Vector3f point = curves[x].getPoint(y/ARC_SEGMENT_ITERATIONS);
+                rotation.rotate(point,point);
                 point.add(position);
-                rotation.rotate(point);
 
                 if(point.distance(pos) < closest)
                     result = y/ARC_SEGMENT_ITERATIONS;
@@ -108,10 +109,11 @@ public abstract class TrackSegment {
     {
         if(index -1 < 0)
         {
-            return  t;
+            return  (t/argLengths[0]);
         }
-        return  t - argLengths[index -1];
+        return  ((t - argLengths[index -1])/(argLengths[index -1]-argLengths[index]));
     }
+
 
     public  float getMaxDistance()
     {
@@ -119,47 +121,84 @@ public abstract class TrackSegment {
     }
 
 
-    public  Vector3f getPoint(float t)
+    public  Vector3f getPoint(float t,EntityRef ref)
     {
-        TrackSegmentPair pair =  getTrackSegment(t);
+        TrackSegmentPair pair =  getTrackSegment(t,ref);
         if(pair.segment == null)
             return null;
-        return pair.segment.getPoint(pair.segment.getT(pair.index,pair.t));
+        int index= pair.segment.getIndex(pair.t);
+        return pair.segment.curves[index].getPoint(pair.segment.getT(index,(pair.t)) );
     }
 
-    public  Vector3f getTangent(float t)
+
+    public Vector3f getPoint(float t,Vector3f position,Quat4f rotation,EntityRef ref)
     {
-        TrackSegmentPair pair =  getTrackSegment(t);
+        return rotation.rotate(getPoint(t,ref)).add(position);
+    }
+
+    public  Vector3f getTangent(float t,EntityRef ref)
+    {
+        TrackSegmentPair pair =  getTrackSegment(t,ref);
         if(pair.segment == null)
             return null;
-        return pair.segment.getTangent(pair.segment.getT(pair.index,pair.t));
+        int index= pair.segment.getIndex(pair.t);
+        return pair.segment.curves[index].getTangent(pair.segment.getT(index,pair.t));
     }
 
-    public  Vector3f getBinormal(float t)
+    public Vector3f getTangent(float t,Quat4f rotation,EntityRef ref)
     {
-        TrackSegmentPair pair =  getTrackSegment(t);
+        return rotation.rotate(getTangent(t,ref));
+    }
+
+    public  Vector3f getBinormal(float t,EntityRef ref)
+    {
+        TrackSegmentPair pair =  getTrackSegment(t,ref);
         if(pair.segment == null)
             return null;
-        return pair.segment.getBinormal(pair.segment.getT(pair.index,pair.t));
+        int index= pair.segment.getIndex(pair.t);
+        return pair.segment.curves[index].getBinormal(pair.segment.getT(index,pair.t));
     }
 
-    public TrackSegmentPair getTrackSegment(float t)
+    public Vector3f getBinormal(float t,Quat4f rotation,EntityRef ref)
     {
+        return rotation.rotate(getBinormal(t,ref));
+    }
+
+    public TrackSegmentPair getTrackSegment(float t,EntityRef ref)
+    {
+
+        TrackSegment previous = this.getPreviousSegment(ref);
+        TrackSegment next = this.getNextSegment(ref);
+
         int index = getIndex(t);
+
         if(index == argLengths.length)
         {
-            return  new TrackSegmentPair(maxDistance-t,getNextSegment(),index);
+            float result = maxDistance-t;
+            if(invertSegment(this,next))
+                result = next.maxDistance - result;
+
+            return  new TrackSegmentPair(result,next);
         }
         else if(index == -1)
         {
-            TrackSegment previousSegment = getPreviousSegment();
-            return  new TrackSegmentPair(previousSegment.getMaxDistance()+t,getPreviousSegment(),index);
+            boolean invert = invertSegment(previous,this);
+
+            float result = previous.getMaxDistance()+t;
+            if(invertSegment(this,next))
+                result = previous.maxDistance - result;
+
+            return  new TrackSegmentPair(previous.getMaxDistance()+t,previous);
         }
-        return  new TrackSegmentPair(t,this,index);
+        boolean invert = invertSegment(previous,next);
+
+        if(invert)
+            t = this.maxDistance - t;
+
+        return  new TrackSegmentPair(t,this);
 
     }
-
-
-    public abstract TrackSegment getNextSegment();
-    public abstract TrackSegment getPreviousSegment();
+    public  abstract  boolean invertSegment(TrackSegment previous,TrackSegment next);
+    public abstract TrackSegment getNextSegment(EntityRef ref);
+    public abstract TrackSegment getPreviousSegment(EntityRef ref);
 }

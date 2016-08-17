@@ -17,6 +17,7 @@ package org.terasology.rails.minecarts.blocks;
 
 import gnu.trove.map.TByteObjectMap;
 import org.terasology.assets.ResourceUrn;
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Side;
 import org.terasology.math.SideBitFlag;
 import org.terasology.math.geom.Vector3i;
@@ -39,16 +40,20 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
 
 
     private TByteObjectMap<Block> blocks;
+    private TByteObjectMap<RailBlockTrackSegment[]> railSegments;
     private byte connectionSides;
 
+
+
     public RailsUpdatesFamily(ConnectionCondition connectionCondition, BlockUri blockUri,
-                              List<String> categories, Block archetypeBlock, TByteObjectMap<Block> blocks, byte connectionSides) {
+                              List<String> categories, Block archetypeBlock, TByteObjectMap<Block> blocks, byte connectionSides, TByteObjectMap<RailBlockTrackSegment[]> railSegments) {
 
         super(blockUri, categories);
         this.connectionCondition = connectionCondition;
         this.archetypeBlock = archetypeBlock;
         this.blocks = blocks;
         this.connectionSides = connectionSides;
+        this.railSegments = railSegments;
         for (Block block : blocks.valueCollection()) {
             block.setBlockFamily(this);
         }
@@ -68,6 +73,12 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
         return blocks.get(getByteConnections(worldProvider, blockEntityRegistry, location));
     }
 
+    public RailBlockTrackSegment getRailSegment(BlockUri uri)
+    {
+        byte connections = Byte.parseByte(uri.getIdentifier().toString());
+        return railSegments.get(connections)[0];
+    }
+
     @Override
     public Block getBlockFor(BlockUri blockUri) {
         if (getURI().equals(blockUri.getFamilyUri())) {
@@ -85,6 +96,8 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
     public Iterable<Block> getBlocks() {
         return blocks.valueCollection();
     }
+
+
 
     private byte getByteConnections(WorldProvider worldProvider, BlockEntityRegistry blockEntityRegistry, Vector3i location) {
         byte connections = 0;
