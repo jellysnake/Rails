@@ -18,6 +18,7 @@ package org.terasology.rails.minecarts.blocks;
 import gnu.trove.map.TByteObjectMap;
 import org.terasology.assets.ResourceUrn;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.math.Rotation;
 import org.terasology.math.Side;
 import org.terasology.math.SideBitFlag;
 import org.terasology.math.geom.Vector3i;
@@ -40,18 +41,18 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
 
 
     private TByteObjectMap<Block> blocks;
-    private TByteObjectMap<RailBlockTrackSegment[]> railSegments;
+    private TByteObjectMap<Rotation> rotation;
     private byte connectionSides;
 
     public RailsUpdatesFamily(ConnectionCondition connectionCondition, BlockUri blockUri,
-                              List<String> categories, Block archetypeBlock, TByteObjectMap<Block> blocks, byte connectionSides, TByteObjectMap<RailBlockTrackSegment[]> railSegments) {
+                              List<String> categories, Block archetypeBlock, TByteObjectMap<Block> blocks, byte connectionSides, TByteObjectMap<Rotation> rotation) {
 
         super(blockUri, categories);
         this.connectionCondition = connectionCondition;
         this.archetypeBlock = archetypeBlock;
         this.blocks = blocks;
         this.connectionSides = connectionSides;
-        this.railSegments = railSegments;
+        this.rotation = rotation;
 
         for (Block block : blocks.valueCollection()) {
             block.setBlockFamily(this);
@@ -72,10 +73,18 @@ public class RailsUpdatesFamily extends AbstractBlockFamily {
         return blocks.get(getByteConnections(worldProvider, blockEntityRegistry, location));
     }
 
-    public RailBlockTrackSegment getRailSegment(BlockUri uri,WorldProvider world)
+
+    public Rotation getRotationFor(BlockUri blockUri)
     {
-        byte connections = Byte.parseByte(uri.getIdentifier().toString());
-        return railSegments.get(connections)[0];
+        if (getURI().equals(blockUri.getFamilyUri())) {
+            try {
+                byte connections = Byte.parseByte(blockUri.getIdentifier().toString());
+                return rotation.get(connections);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     @Override

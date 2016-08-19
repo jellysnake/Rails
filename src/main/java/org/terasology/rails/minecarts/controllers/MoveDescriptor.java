@@ -23,8 +23,8 @@ import org.terasology.physics.components.RigidBodyComponent;
 import org.terasology.rails.minecarts.components.RailVehicleComponent;
 import org.terasology.rails.minecarts.utils.MinecartHelper;
 
-
-
+/*
+@Deprecated
 public class MoveDescriptor {
     public void calculateDirection(Vector3f velocity, BlockInfo blockInfo, RailVehicleComponent railVehicleComponent,
                                    MotionState motionState, Vector3f position, int slopeFactor) {
@@ -231,8 +231,8 @@ public class MoveDescriptor {
                 velocity.scale(velocity.length()*(dir.length() - 0.8f));
             }  */
 
-        }
-
+      //  }
+/*
         MinecartHelper.setVectorToDirection(railVehicleComponent.direction, railVehicleComponent.pathDirection);
 
         velocity.absolute();
@@ -316,4 +316,4 @@ public class MoveDescriptor {
             railVehicle.pitch *= reverseSign;
         }
     }
-}
+}*/

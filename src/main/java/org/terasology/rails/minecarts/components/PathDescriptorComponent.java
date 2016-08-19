@@ -17,6 +17,7 @@ package org.terasology.rails.minecarts.components;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.math.Side;
+import org.terasology.math.geom.Vector3f;
 import org.terasology.network.Replicate;
 import org.terasology.rails.tracks.CubicBezier;
 import org.terasology.reflection.MappedContainer;
@@ -44,6 +45,12 @@ public class PathDescriptorComponent implements Component {
         public  Side start;
         @Replicate
         public Side end;
+
+        @Replicate
+        public Vector3f startingBinormal;
+
+        @Replicate
+        public  float rotation;
 
     }
 

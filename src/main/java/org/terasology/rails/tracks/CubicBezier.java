@@ -32,6 +32,9 @@ public class CubicBezier {
     @Replicate
     Vector3f f4;
 
+    public CubicBezier()
+    {
+    }
     public CubicBezier(Vector3f f1, Vector3f f2, Vector3f f3, Vector3f f4)
     {
         this.f1 = f1;
@@ -60,11 +63,5 @@ public class CubicBezier {
         return vf1.add(vf2).add(vf3).normalize();
     }
 
-    public  Vector3f getBinormal(float t)
-    {
-        Vector3f result = new Vector3f();
-        result.cross( getPoint(t),getTangent(t));
-        return result.normalize();
-    }
 
 }

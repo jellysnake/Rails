@@ -19,6 +19,7 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Rotation;
 import org.terasology.math.Side;
+import org.terasology.math.geom.Vector3f;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.rails.minecarts.components.PathDescriptorComponent;
 import org.terasology.rails.tracks.CubicBezier;
@@ -26,6 +27,7 @@ import org.terasology.rails.tracks.TrackSegment;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockUri;
 
 /**
  * Created by michaelpollind on 8/16/16.
@@ -35,7 +37,8 @@ public class RailBlockTrackSegment extends TrackSegment {
     private  Rotation rotation;
     private  Side start;
     private  Side end;
-
+    private  WorldProvider worldProvider;
+    private  RailBlockTrackSegmentSystem railBlockTrackSegmentSystem;
 
     public  Rotation getRotation()
     {
@@ -43,34 +46,49 @@ public class RailBlockTrackSegment extends TrackSegment {
     }
 
 
-    public RailBlockTrackSegment(CubicBezier[] curves, PathDescriptorComponent.Descriptor descriptor, Rotation rotation) {
-        super(curves);
+
+    public RailBlockTrackSegment(CubicBezier[] curves, PathDescriptorComponent.Descriptor descriptor, Rotation rotation, WorldProvider worldProvider, RailBlockTrackSegmentSystem railBlockTrackSegmentSystem, Vector3f startingBinormal) {
+        super(curves,startingBinormal);
         this.rotation = rotation;
         this.start = rotation.rotate(descriptor.start);
         this.end = rotation.rotate(descriptor.end);
+        this.worldProvider = worldProvider;
+        this.railBlockTrackSegmentSystem = railBlockTrackSegmentSystem;
     }
 
     @Override
-    public boolean invertSegment(TrackSegment previous, TrackSegment next,WorldProvider worldProvider, EntityManager entityManager) {
+    public boolean invertSegment(TrackSegment previous, TrackSegment next) {
         if(((RailBlockTrackSegment)previous).end.reverse() == ((RailBlockTrackSegment)next).start)
             return false;
         return  true;
     }
 
     @Override
-    public TrackSegment getNextSegment(EntityRef ref,WorldProvider worldProvider, EntityManager entityManager) {
+    public TrackSegment getNextSegment(EntityRef ref) {
         Vector3i blockPosition = ref.getComponent(BlockComponent.class).getPosition().add(end.getVector3i());
+        if(end == Side.TOP)
+        {
+            blockPosition.add(start.reverse().getVector3i());
+        }
+
         Block b = worldProvider.getBlock(blockPosition);
 
-
-        return ((RailsUpdatesFamily)b.getBlockFamily()).getRailSegment(b.getURI(),worldProvider);
+        if(!(b.getBlockFamily() instanceof  RailsUpdatesFamily))
+            return  null;
+        return railBlockTrackSegmentSystem.getSegment(b.getURI());
     }
 
     @Override
-    public TrackSegment getPreviousSegment(EntityRef ref,WorldProvider worldProvider, EntityManager entityManager) {
+    public TrackSegment getPreviousSegment(EntityRef ref) {
         Vector3i blockPosition = ref.getComponent(BlockComponent.class).getPosition().add(start.getVector3i());
         Block b = worldProvider.getBlock(blockPosition);
 
-        return ((RailsUpdatesFamily)b.getBlockFamily()).getRailSegment(b.getURI(),worldProvider);
+        if(start == Side.TOP)
+        {
+            blockPosition.add(end.reverse().getVector3i());
+        }
+        if(!(b.getBlockFamily() instanceof  RailsUpdatesFamily))
+            return  null;
+        return railBlockTrackSegmentSystem.getSegment(b.getURI());
     }
 }

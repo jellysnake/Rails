@@ -60,10 +60,10 @@ public class MinecartFactory {
         LocationComponent minecartLocation = entity.getComponent(LocationComponent.class);
         if (minecartLocation != null) {
             RailVehicleComponent railVehicle = entity.getComponent(RailVehicleComponent.class);
-            railVehicle.isCreated = true;
-            railVehicle.drive = 0;
-            railVehicle.pathDirection = new Vector3f();
-            railVehicle.direction = new Vector3f(1f, 1f, 1f);
+            //railVehicle.isCreated = true;
+            //railVehicle.drive = 0;
+            //railVehicle.pathDirection = new Vector3f();
+            //railVehicle.direction = new Vector3f(1f, 1f, 1f);
             attachVehicle(entity, new Vector3f(-0.125f, -1.5f, 0.55f), 1f);
             attachVehicle(entity, new Vector3f(-0.125f, -1.5f, -0.55f), 1f);
             entity.saveComponent(railVehicle);
@@ -80,10 +80,10 @@ public class MinecartFactory {
         LocationComponent minecartLocation = entity.getComponent(LocationComponent.class);
         if (minecartLocation != null) {
             RailVehicleComponent railVehicle = entity.getComponent(RailVehicleComponent.class);
-            railVehicle.isCreated = true;
-            railVehicle.drive = 0;
-            railVehicle.pathDirection = new Vector3f();
-            railVehicle.direction = new Vector3f(1f, 1f, 1f);
+            //railVehicle.isCreated = true;
+            //railVehicle.drive = 0;
+           // railVehicle.pathDirection = new Vector3f();
+            //railVehicle.direction = new Vector3f(1f, 1f, 1f);
             attachVehicle(entity, new Vector3f(-0.125f, -1.2f, 0.55f), 0.75f);
             attachVehicle(entity, new Vector3f(-0.125f, -1.2f, 0), 0.75f);
             attachVehicle(entity, new Vector3f(-0.125f, -1.2f, -0.55f), 0.75f);

@@ -45,7 +45,6 @@ import org.terasology.physics.Physics;
 import org.terasology.physics.StandardCollisionGroup;
 import org.terasology.physics.components.RigidBodyComponent;
 import org.terasology.physics.events.ChangeVelocityEvent;
-import org.terasology.rails.minecarts.blocks.ConnectsToRailsComponent;
 import org.terasology.rails.minecarts.components.RailVehicleComponent;
 import org.terasology.rails.minecarts.utils.MinecartHelper;
 import org.terasology.registry.In;
@@ -56,7 +55,8 @@ import org.terasology.world.block.Block;
 
 import java.util.Map;
 
-@RegisterSystem(RegisterMode.AUTHORITY)
+//@RegisterSystem(RegisterMode.AUTHORITY)
+/*@Deprecated
 public class MinecartSystem extends BaseComponentSystem implements UpdateSubscriberSystem {
     private static final Vector3f FREE_MOTION   = new Vector3f(1f, 1f, 1f);
     private static final Vector3f LOCKED_MOTION = new Vector3f(0f, 0f, 0f);
@@ -427,6 +427,7 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
          //   }
         }*/
 
-        return fixedPosition;
+        /*return fixedPosition;
     }
 }
+*/

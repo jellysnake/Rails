@@ -71,7 +71,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
     private ConnectionCondition connectionCondition;
     private byte connectionSides;
 
-    TByteObjectMap<RailBlockTrackSegment[]> segments = new TByteObjectHashMap<>();
+    TByteObjectMap<Rotation> rotations = new TByteObjectHashMap<>();
 
     public RailsFamilyFactory() {
         connectionCondition = new RailsConnectionCondition();
@@ -111,7 +111,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
         for (byte connections = 0; connections < 54; connections++) {
             // Only the allowed connections should be created
             if ((connections & connectionSides) == connections) {
-                Block block = constructBlockForConnections(connections, blockBuilder, definition, basicBlocks);
+                Block block = constructBlockForConnections(connections,blockUri, blockBuilder, definition, basicBlocks);
                 if (block != null) {
                     block.setUri(new BlockUri(blockUri, new Name(String.valueOf(connections))));
                     blocksForConnections.put(connections, block);
@@ -121,7 +121,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
 
         final Block archetypeBlock = blocksForConnections.get(SideBitFlag.getSides(Side.RIGHT, Side.LEFT));
         return new RailsUpdatesFamily(connectionCondition, blockUri, definition.getCategories(),
-                archetypeBlock, blocksForConnections, (byte) (connectionSides & 0b111110),segments);
+                archetypeBlock, blocksForConnections, (byte) (connectionSides & 0b111110),rotations);
     }
 
     protected void addConnections(TByteObjectMap<String>[] basicBlocks, int index, String connections) {
@@ -134,7 +134,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
         }
     }
 
-    protected Block constructBlockForConnections(final byte connections, final BlockBuilderHelper blockBuilder,
+    protected Block constructBlockForConnections(final byte connections,BlockUri uri, final BlockBuilderHelper blockBuilder,
                                                  BlockFamilyDefinition definition, TByteObjectMap<String>[] basicBlocks) {
         int connectionCount = SideBitFlag.getSides(connections).size();
         TByteObjectMap<String> possibleBlockDefinitions = basicBlocks[connectionCount];
@@ -146,21 +146,8 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
             Rotation rot = getRotationToAchieve(originalConnections, connections);
             if (rot != null) {
 
-                Block block = blockBuilder.constructTransformedBlock(definition, section, rot);
-                PathDescriptorComponent component = block.getPrefab().get().getComponent(PathDescriptorComponent.class);
-
-
-                RailBlockTrackSegment[] temp = new RailBlockTrackSegment[component.descriptors.size()];
-                for(int x = 0; x < component.descriptors.size(); x++)
-                {
-                    CubicBezier[] bezierPath = new CubicBezier[component.descriptors.get(0).path.size()];
-                    component.descriptors.get(x).path.toArray(bezierPath);
-
-                    temp[x] = new RailBlockTrackSegment(bezierPath,component.descriptors.get(x),rot);
-
-                }
-                segments.put(connections,temp);
-                return block;
+                rotations.put(connections,rot);
+                return blockBuilder.constructTransformedBlock(definition, section, rot);
             }
         }
         return null;
@@ -194,7 +181,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
         }
 
         private boolean connectsToNeighbor(EntityRef neighborEntity, Side side) {
-            return neighborEntity.hasComponent(ConnectsToRailsComponent.class);
+            return neighborEntity.hasComponent(RailComponent.class);
         }
     }
 }

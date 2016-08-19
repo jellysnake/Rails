@@ -19,7 +19,7 @@ import org.terasology.math.geom.Vector3f;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.rails.minecarts.components.RailVehicleComponent;
 
-
+@Deprecated
 public class MotionState {
     public Vector3f prevPosition = new Vector3f();
     public Vector3f currentBlockPosition = new Vector3f();
@@ -35,8 +35,8 @@ public class MotionState {
     public void setCurrentState(Vector3f pathDirection, Vector3f minecartDirection, Vector3f newAngularFactor,
                                 Vector3i newBlockPosition, PositionStatus newPositionStatus) {
         angularFactor = newAngularFactor;
-        this.railVehicleComponent.pathDirection.set(pathDirection);
-        this.railVehicleComponent.direction.set(minecartDirection);
+        //this.railVehicleComponent.pathDirection.set(pathDirection);
+        //this.railVehicleComponent.direction.set(minecartDirection);
         currentPositionStatus = newPositionStatus;
         if (newBlockPosition != null) {
             setCurrentBlockPosition(newBlockPosition.toVector3f());

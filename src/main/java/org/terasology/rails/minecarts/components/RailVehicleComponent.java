@@ -21,13 +21,11 @@ import org.terasology.entitySystem.Component;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.network.Replicate;
+import org.terasology.protobuf.EntityData;
 
 import java.util.List;
 
 public class RailVehicleComponent implements Component {
-    @Replicate
-    public boolean isCreated;
-
     @Replicate
     public Types type = Types.minecart;
 
@@ -40,41 +38,20 @@ public class RailVehicleComponent implements Component {
     public enum Types { locomotive, minecart };
 
     @Replicate
-    public EntityRef parentNode;
+    public EntityRef currentSegment;
 
     @Replicate
-    public EntityRef childNode;
+    public  Vector3f currentSegmentPosition;
 
     @Replicate
-    public EntityRef locomotiveRef;
+    public EntityRef previousSegment;
+
 
     @Replicate
-    public EntityRef characterInsideCart;
+    public  Vector3f previousSegmentPosition;
 
     @Replicate
-    public float pitch;
+    public  float t;
 
-    @Replicate
-    public float prevYaw;
 
-    @Replicate
-    public float yaw;
-
-    @Replicate
-    public float drive;
-
-    @Replicate
-    public float changeDriveByStep = 2f;
-
-    @Replicate
-    public float maxDrive = 10f;
-
-    @Replicate
-    public Vector3f pathDirection;
-
-    @Replicate
-    public Vector3f direction;
-
-    @Replicate
-    public float needRevertVelocity;
 }
