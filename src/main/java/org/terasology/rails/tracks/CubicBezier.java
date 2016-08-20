@@ -15,6 +15,7 @@
  */
 package org.terasology.rails.tracks;
 
+import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.network.Replicate;
 import org.terasology.reflection.MappedContainer;
@@ -44,7 +45,7 @@ public class CubicBezier {
     }
 
     public Vector3f getPoint(float t) {
-
+        t = TeraMath.clamp(t,0,1f);
         float num = 1f - t;
         Vector3f vf1 = new Vector3f(f1).mul(num*num*num);
         Vector3f vf2 = new Vector3f(f2).mul(3f*num*num*t);
@@ -55,6 +56,7 @@ public class CubicBezier {
 
     public Vector3f getTangent(float t)
     {
+        t = TeraMath.clamp(t,0,1f);
         float num = 1f -t;
         Vector3f vf1 = new Vector3f(f2).sub(f1).mul(3f*num*num);
         Vector3f vf2 = new Vector3f(f3).sub(f2).mul(6f*num*t);

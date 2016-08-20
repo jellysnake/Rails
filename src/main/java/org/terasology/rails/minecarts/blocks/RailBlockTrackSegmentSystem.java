@@ -74,6 +74,8 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
                     Vector3f startingBinormal = new Vector3f(pathDescriptor.descriptors.get(x).startingBinormal);
                     Rotation blockRotation = railFamily.getRotationFor(uri);
+                    if(blockRotation == null)
+                        blockRotation = Rotation.none();
 
 
                     segments[x] = new RailBlockTrackSegment(curves,blockEntityRegistry,descriptor,blockRotation,worldProvider,this,startingBinormal);

@@ -1,6 +1,5 @@
 {
-    "ConnectsToRails": {
-        "type": "PLANE"
+    "Rail": {
     },
     "PathDescriptor" :
     {
@@ -17,7 +16,9 @@
 
                 ],
                 "start" : "LEFT",
-                "end" : "RIGHT"
+                "end" : "RIGHT",
+                "startingBinormal": [0,0,-1],
+                "rotation" : 0
             }
         ]
     }

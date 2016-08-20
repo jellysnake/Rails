@@ -28,6 +28,7 @@ import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.inventory.InventoryManager;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.players.LocalPlayer;
+import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.math.geom.Vector3i;
@@ -152,14 +153,15 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             float headingMagnitude =  railVehicleComponent.headingVelocity.length();
             Vector3f normalizedHeading = railVehicleComponent.headingVelocity.normalize();
 
-            float tangentrotation =  new Quat4f().shortestArcQuat(tangent,normalizedHeading).getAngle();
-            float inverseTangentRoation = new Quat4f().shortestArcQuat(new Vector3f(tangent).invert(),normalizedHeading).getAngle();
-            if( Math.abs(tangentrotation) < Math.abs(inverseTangentRoation)) {
-                railVehicleComponent.headingVelocity.set(tangent).mul(headingMagnitude);
+
+            if( tangent.dot(normalizedHeading) > 0) {
+
+                railVehicleComponent.headingVelocity= new Vector3f(tangent).mul(headingMagnitude);
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t + headingMagnitude * time.getGameDelta(), railVehicleComponent.currentSegment);
             }
             else {
-                railVehicleComponent.headingVelocity.set(tangent).invert().mul(headingMagnitude);
+
+                railVehicleComponent.headingVelocity = new Vector3f(tangent).invert().mul(headingMagnitude);
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t - headingMagnitude * time.getGameDelta(), railVehicleComponent.currentSegment);
             }
             if(proceedingPair == null)

@@ -62,12 +62,12 @@ public class RailBlockTrackSegment extends TrackSegment {
 
     @Override
     public boolean invertSegment(TrackSegment previous, TrackSegment next) {
-        if(((RailBlockTrackSegment)previous).end.reverse() == ((RailBlockTrackSegment)next).start)
-            return false;
+        if(((RailBlockTrackSegment)previous).end == ((RailBlockTrackSegment)next).end.reverse())
+            return true;
 
-        if(((RailBlockTrackSegment)previous).start.reverse() == ((RailBlockTrackSegment)next).end)
-            return false;
-        return  true;
+        if(((RailBlockTrackSegment)previous).start == ((RailBlockTrackSegment)next).start.reverse())
+            return true;
+        return  false;
     }
 
     @Override

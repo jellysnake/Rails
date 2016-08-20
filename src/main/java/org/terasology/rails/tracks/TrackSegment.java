@@ -17,6 +17,7 @@ package org.terasology.rails.tracks;
 
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.protobuf.EntityData;
@@ -220,7 +221,7 @@ public abstract class TrackSegment {
             if(next == null)
                 return  null;
 
-            float result = this.getMaxDistance()-t;
+            float result = t - this.getMaxDistance();
             if(invertSegment(this,next.segment))
                 result = next.segment.getMaxDistance() - result;
             next.t = result;
