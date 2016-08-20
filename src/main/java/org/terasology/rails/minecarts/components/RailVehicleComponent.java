@@ -32,25 +32,12 @@ public class RailVehicleComponent implements Component {
     @Replicate
     public List<EntityRef> vehicles = Lists.newArrayList();
 
-    @Replicate
     public EntityRef pipe = null;
-
     public enum Types { locomotive, minecart };
 
-    @Replicate
+    public Vector3f headingVelocity;
     public EntityRef currentSegment;
-
-    @Replicate
-    public  Vector3f currentSegmentPosition;
-
-    @Replicate
     public EntityRef previousSegment;
-
-
-    @Replicate
-    public  Vector3f previousSegmentPosition;
-
-    @Replicate
     public  float t;
 
 

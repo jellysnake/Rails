@@ -15,13 +15,13 @@
  */
 package org.terasology.rails.minecarts.blocks;
 
-import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.map.TByteObjectMap;
 import gnu.trove.map.hash.TByteObjectHashMap;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.math.Rotation;
+import org.terasology.math.geom.Vector3f;
 import org.terasology.rails.minecarts.components.PathDescriptorComponent;
 import org.terasology.rails.tracks.CubicBezier;
 import org.terasology.registry.In;
@@ -32,7 +32,6 @@ import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.BlockFamily;
-import org.terasology.world.block.loader.BlockFamilyDefinition;
 
 /**
  * Created by michaelpollind on 8/17/16.
@@ -43,6 +42,9 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
     @In
     private  WorldProvider worldProvider;
+
+    @In
+    private  BlockEntityRegistry blockEntityRegistry;
 
     @In
     private BlockManager blockManager;
@@ -69,7 +71,12 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
                     CubicBezier[] curves = new CubicBezier[descriptor.path.size()];
                     pathDescriptor.descriptors.get(x).path.toArray(curves);
-                    segments[x] = new RailBlockTrackSegment(curves,descriptor,railFamily.getRotationFor(uri),worldProvider,this,pathDescriptor.descriptors.get(x).startingBinormal);
+
+                    Vector3f startingBinormal = new Vector3f(pathDescriptor.descriptors.get(x).startingBinormal);
+                    Rotation blockRotation = railFamily.getRotationFor(uri);
+
+
+                    segments[x] = new RailBlockTrackSegment(curves,blockEntityRegistry,descriptor,blockRotation,worldProvider,this,startingBinormal);
                 }
 
                 trackSegment.put(connection,segments);

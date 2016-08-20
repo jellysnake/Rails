@@ -39,9 +39,9 @@ public abstract class TrackSegment {
 
     public static class TrackSegmentPair
     {
-        float t;
-        TrackSegment segment;
-        EntityRef association;
+        public float t;
+        public TrackSegment segment;
+        public EntityRef association;
 
         public  TrackSegmentPair(float t, TrackSegment segment ,EntityRef association)
         {
@@ -49,7 +49,14 @@ public abstract class TrackSegment {
             this.segment = segment;
             this.association = association;
         }
+
+        public  TrackSegmentPair(TrackSegment segment, EntityRef association)
+        {
+            this.segment = segment;
+            this.association = association;
+        }
     }
+
 
     public TrackSegment(CubicBezier[] curves,Vector3f startingBinromal) {
         this.curves = curves;
@@ -123,7 +130,6 @@ public abstract class TrackSegment {
 
     private  int getIndex(float t)
     {
-        float distance = 0;
         if(t < 0)
             return  -1;
         for(int x = 0; x < argLengths.length; x++)
@@ -133,7 +139,7 @@ public abstract class TrackSegment {
                 return x;
             }
         }
-        return argLengths.length ;
+        return argLengths.length-1;
     }
 
     private  float getT(int index,float t)
@@ -204,36 +210,36 @@ public abstract class TrackSegment {
     public TrackSegmentPair getTrackSegment(float t, EntityRef ref)
     {
 
-        TrackSegment previous = this.getPreviousSegment(ref);
-        TrackSegment next = this.getNextSegment(ref);
+        TrackSegmentPair previous = this.getPreviousSegment(ref);
+        TrackSegmentPair next = this.getNextSegment(ref);
 
         int index = getIndex(t);
 
-        if(index == argLengths.length)
+        if(t > getMaxDistance())
         {
             if(next == null)
                 return  null;
 
             float result = this.getMaxDistance()-t;
-            if(invertSegment(this,next))
-                result = next.getMaxDistance() - result;
-
-            return  new TrackSegmentPair(result,next,ref);
+            if(invertSegment(this,next.segment))
+                result = next.segment.getMaxDistance() - result;
+            next.t = result;
+            return next;
         }
-        else if(index == -1)
+        else if(t < 0)
         {
             if(previous == null)
                 return  null;
 
-            float result = previous.getMaxDistance()+t;
-            if(invertSegment(previous,this))
-                result = previous.getMaxDistance() - result;
-
-            return  new TrackSegmentPair(result,previous,ref);
+            float result = previous.segment.getMaxDistance()+t;
+            if(invertSegment(previous.segment,this))
+                result = previous.segment.getMaxDistance() - result;
+            previous.t = result;
+            return  previous;
         }
         return  new TrackSegmentPair(t,this,ref);
     }
     public  abstract  boolean invertSegment(TrackSegment previous,TrackSegment next);
-    public abstract TrackSegment getNextSegment(EntityRef ref);
-    public abstract TrackSegment getPreviousSegment(EntityRef ref);
+    public abstract TrackSegmentPair getNextSegment(EntityRef ref);
+    public abstract TrackSegmentPair getPreviousSegment(EntityRef ref);
 }
