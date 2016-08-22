@@ -27,6 +27,7 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.inventory.InventoryManager;
 import org.terasology.logic.location.LocationComponent;
+import org.terasology.logic.location.LocationResynchEvent;
 import org.terasology.logic.players.LocalPlayer;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Quat4f;
@@ -36,6 +37,7 @@ import org.terasology.physics.HitResult;
 import org.terasology.physics.Physics;
 import org.terasology.physics.StandardCollisionGroup;
 import org.terasology.physics.components.RigidBodyComponent;
+import org.terasology.physics.events.ChangeVelocityEvent;
 import org.terasology.rails.minecarts.blocks.RailBlockTrackSegment;
 import org.terasology.rails.minecarts.blocks.RailBlockTrackSegmentSystem;
 import org.terasology.rails.minecarts.blocks.RailComponent;
@@ -93,6 +95,7 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         RigidBodyComponent rigidBody = railVehicle.getComponent(RigidBodyComponent.class);
         RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
 
+
         if(railVehicleComponent.currentSegment == null)
         {
             HitResult hit =  physics.rayTrace(location.getWorldPosition(), Vector3f.down(), 1.2f, StandardCollisionGroup.DEFAULT, StandardCollisionGroup.WORLD);
@@ -115,6 +118,7 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
         }
 
+
         repositionAxis(railVehicle);
 
 
@@ -124,6 +128,7 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
     {
         LocationComponent location = railVehicle.getComponent(LocationComponent.class);
         RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
+        RigidBodyComponent rigidBodyComponent = railVehicle.getComponent(RigidBodyComponent.class);
 
         if(railVehicleComponent.currentSegment != null)
         {
@@ -145,14 +150,13 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             Vector3f normal =  segment.getNormal(railVehicleComponent.t,segment.getRotation().getQuat4f(),railVehicleComponent.currentSegment);
             Vector3f tangent = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),railVehicleComponent.currentSegment);
 
-            location.setWorldPosition(position);
-            location.setLocalRotation(new Quat4f(normal,(float) Math.acos(Vector3f.north().dot(tangent))));
+            //location.setWorldPosition(position);
+            location.setLocalRotation( Quat4f.shortestArcQuat(Vector3f.north(),tangent));
 
 
             TrackSegment.TrackSegmentPair proceedingPair;
             float headingMagnitude =  railVehicleComponent.headingVelocity.length();
             Vector3f normalizedHeading = railVehicleComponent.headingVelocity.normalize();
-
 
             if( tangent.dot(normalizedHeading) > 0) {
 
@@ -167,15 +171,21 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             if(proceedingPair == null)
                 return;
 
+            rigidBodyComponent.velocity.set(railVehicleComponent.headingVelocity);
+            rigidBodyComponent.linearFactor.set(new Vector3f(railVehicleComponent.headingVelocity).normalize());
+            rigidBodyComponent.kinematic = true;
+
+
             railVehicleComponent.t = proceedingPair.t;
             railVehicleComponent.currentSegment = proceedingPair.association;
 
             railVehicle.saveComponent(railVehicleComponent);
             railVehicle.saveComponent(location);
+            railVehicle.saveComponent(rigidBodyComponent);
+            railVehicle.send(new ChangeVelocityEvent(rigidBodyComponent.velocity));
 
         }
     }
-
 
 
     private  void  findTrackToAttachTo(EntityRef ref)
