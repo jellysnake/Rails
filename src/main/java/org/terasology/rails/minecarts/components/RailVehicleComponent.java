@@ -35,7 +35,6 @@ public class RailVehicleComponent implements Component {
     public EntityRef pipe = null;
     public enum Types { locomotive, minecart };
 
-    public Vector3f headingVelocity;
     public EntityRef currentSegment;
     public EntityRef previousSegment;
     public  float t;
