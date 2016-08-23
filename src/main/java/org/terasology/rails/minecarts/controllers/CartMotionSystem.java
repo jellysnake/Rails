@@ -30,6 +30,7 @@ import org.terasology.logic.inventory.InventoryManager;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.location.LocationResynchEvent;
 import org.terasology.logic.players.LocalPlayer;
+import org.terasology.math.Side;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Quat4f;
 import org.terasology.math.geom.Vector3f;
@@ -110,7 +111,6 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             if(ref.hasComponent(RailComponent.class))
             {
                 railVehicleComponent.currentSegment = ref;
-                railVehicleComponent.previousSegment = null;
 
                 RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(block.getURI(),null);
                 railVehicleComponent.t = segment.getNearestT(hit.getHitPoint(),hit.getBlockPosition().toVector3f(),segment.getRotation().getQuat4f());
@@ -143,7 +143,13 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
                 railVehicle.saveComponent(railVehicleComponent);
                 return;
             }
-            RailBlockTrackSegment segment =getRailBlockTrackSegment(railVehicleComponent.previousSegment,railVehicleComponent.currentSegment);
+
+            if(railVehicleComponent.trackSegment == null)
+            {
+                railVehicleComponent.trackSegment = railBlockTrackSegment.getSegment(blockComponent.getBlock().getURI(),null);
+            }
+
+            RailBlockTrackSegment segment =railVehicleComponent.trackSegment;//getRailBlockTrackSegment(railVehicleComponent.previousSegment,railVehicleComponent.currentSegment);
 
 
             Vector3f position = segment.getPoint(railVehicleComponent.t,blockComponent.getPosition().toVector3f(),segment.getRotation().getQuat4f(),railVehicleComponent.currentSegment);
@@ -183,16 +189,11 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
             //rigidBodyComponent.velocity.add(new Vector3f(position).sub(location.getWorldPosition()));
 
-            if(railVehicleComponent.currentSegment != proceedingPair.association)
-            {
-                railVehicleComponent.previousSegment = railVehicleComponent.currentSegment;
-
-            }
 
             rigidBodyComponent.kinematic = true;
             railVehicleComponent.t = proceedingPair.t;
             railVehicleComponent.currentSegment = proceedingPair.association;
-
+            railVehicleComponent.trackSegment = (RailBlockTrackSegment) proceedingPair.segment;
 
 
             railVehicle.saveComponent(railVehicleComponent);
@@ -203,16 +204,18 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         }
     }
 
-    private  RailBlockTrackSegment getRailBlockTrackSegment(EntityRef previous, EntityRef current)
+   /* private  RailBlockTrackSegment getRailBlockTrackSegment(EntityRef previous, EntityRef current)
     {
+        Side direction = null;
         BlockComponent currentBlockComponent = current.getComponent(BlockComponent.class);
         RailBlockTrackSegment previousSegment = null;
         if(previous != null) {
             BlockComponent previousBlockComponent = previous.getComponent(BlockComponent.class);
-            previousSegment =   railBlockTrackSegment.getSegment(previousBlockComponent.getBlock().getURI());
+            direction = Side.inDirection(new Vector3i(currentBlockComponent.getPosition()).sub(previousBlockComponent.getPosition()).toVector3f());
+            previousSegment = railBlockTrackSegment.getSegment(previousBlockComponent.getBlock().getURI(),direction);
         }
-        return railBlockTrackSegment.getSegment(currentBlockComponent.getBlock().getURI(),previousSegment);
-    }
+        return railBlockTrackSegment.getSegment(currentBlockComponent.getBlock().getURI(),direction,previousSegment);
+    }*/
 
     public final Vector3f project(Vector3f u, Vector3f v)
     {

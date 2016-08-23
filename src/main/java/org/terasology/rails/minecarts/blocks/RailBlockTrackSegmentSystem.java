@@ -21,6 +21,7 @@ import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.math.Rotation;
+import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.rails.minecarts.components.PathDescriptorComponent;
 import org.terasology.rails.tracks.CubicBezier;
@@ -51,12 +52,8 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
     private TByteObjectMap<RailBlockTrackSegment[]> trackSegment = new TByteObjectHashMap<>();
 
-    public  RailBlockTrackSegment getSegment(BlockUri uri)
-    {
-        return  getSegment(uri,null);
-    }
 
-    public  RailBlockTrackSegment getSegment(BlockUri uri,RailBlockTrackSegment previous )
+    public  RailBlockTrackSegment getSegment(BlockUri uri,Side direction )
     {
         byte connection = getConnections(uri);
         Block block = blockManager.getBlock(uri);
@@ -91,24 +88,17 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
 
             RailBlockTrackSegment[] segments = trackSegment.get(connection);
-            if(previous== null)
-                return segments[0];
+            if(direction == null)
+                return  trackSegment.get(connection)[0];
             for(int x = 0; x < segments.length; x++)
             {
-                if(previous.invertSegment(previous,segments[x]))
-                {
-                    if(previous.getStart().reverse() == segments[x].getStart())
-                        return  segments[x];
-                    if(previous.getEnd().reverse() == segments[x].getEnd())
-                        return  segments[x];
-                }
-                else
-                {
-                    if(previous.getStart().reverse() == segments[x].getEnd())
-                        return  segments[x];
-                    if(previous.getEnd().reverse() == segments[x].getStart())
-                        return  segments[x];
-                }
+
+                boolean hasMatching = false;
+                if(direction.reverse() == segments[x].getStart())
+                    return segments[x];
+                if(direction.reverse() == segments[x].getEnd())
+                    return segments[x];
+
             }
             return  trackSegment.get(connection)[0];
         }

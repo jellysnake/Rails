@@ -22,6 +22,7 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.network.Replicate;
 import org.terasology.protobuf.EntityData;
+import org.terasology.rails.minecarts.blocks.RailBlockTrackSegment;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class RailVehicleComponent implements Component {
     public enum Types { locomotive, minecart };
 
     public EntityRef currentSegment;
-    public EntityRef previousSegment;
+    public RailBlockTrackSegment trackSegment;
     public  float t;
 
 

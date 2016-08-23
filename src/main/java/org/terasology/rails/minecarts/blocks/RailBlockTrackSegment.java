@@ -71,6 +71,15 @@ public class RailBlockTrackSegment extends TrackSegment {
     @Override
     public boolean invertSegment(TrackSegment previous, TrackSegment next) {
 
+        if(((RailBlockTrackSegment)previous).end == Side.TOP) {
+            if(((RailBlockTrackSegment)previous).start == ((RailBlockTrackSegment)next).end)
+                return true;
+        }
+        if(((RailBlockTrackSegment)previous).start == Side.TOP) {
+            if(((RailBlockTrackSegment)previous).start == ((RailBlockTrackSegment)next).end)
+                return true;
+        }
+
         if(((RailBlockTrackSegment)previous).end == ((RailBlockTrackSegment)next).end.reverse())
             return true;
 
@@ -81,14 +90,18 @@ public class RailBlockTrackSegment extends TrackSegment {
 
     @Override
     public TrackSegmentPair getNextSegment(EntityRef ref) {
-        Vector3i blockPosition = new Vector3i(ref.getComponent(BlockComponent.class).getPosition()).add(end.getVector3i());
-        if(end == Side.TOP)
-        {
-            blockPosition.add(start.reverse().getVector3i());
-        }
+        Side direction = end;
 
+        Vector3i blockPosition = new Vector3i(ref.getComponent(BlockComponent.class).getPosition()).add(end.getVector3i());
         EntityRef nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
         BlockComponent block = nextRef.getComponent(BlockComponent.class);
+
+        if(end == Side.TOP)
+        {
+            nextRef =  blockEntityRegistry.getBlockEntityAt(new Vector3i(blockPosition).add(start.reverse().getVector3i()));
+            block = nextRef.getComponent(BlockComponent.class);
+            direction = start.reverse();
+        }
 
         if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
 
@@ -100,19 +113,24 @@ public class RailBlockTrackSegment extends TrackSegment {
             }
         }
 
-        return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI()),nextRef);
+        return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI(),direction),nextRef);
     }
+
 
     @Override
     public TrackSegmentPair getPreviousSegment(EntityRef ref) {
+        Side direction = start;
         Vector3i blockPosition = new Vector3i(ref.getComponent(BlockComponent.class).getPosition()).add(start.getVector3i());
+        EntityRef nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
+        BlockComponent block = nextRef.getComponent(BlockComponent.class);
 
         if(start == Side.TOP)
         {
-            blockPosition.add(end.reverse().getVector3i());
+            direction = end.reverse();
+            nextRef =  blockEntityRegistry.getBlockEntityAt(new Vector3i(blockPosition).add(end.reverse().getVector3i()));
+            block = nextRef.getComponent(BlockComponent.class);
+
         }
-        EntityRef nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
-        BlockComponent block = nextRef.getComponent(BlockComponent.class);
 
         if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
 
@@ -124,6 +142,6 @@ public class RailBlockTrackSegment extends TrackSegment {
             }
         }
 
-        return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI()),nextRef);
+        return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI(),direction),nextRef);
     }
 }

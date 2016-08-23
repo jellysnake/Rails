@@ -108,7 +108,7 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
         BlockUri blockUri = new BlockUri(definition.getUrn());
 
         // Now make sure we have all combinations based on the basic set (above) and rotations
-        for (byte connections = 0; connections < 54; connections++) {
+        for (byte connections = 0; connections < 60; connections++) {
             // Only the allowed connections should be created
             if ((connections & connectionSides) == connections) {
                 Block block = constructBlockForConnections(connections,blockUri, blockBuilder, definition, basicBlocks);
@@ -137,6 +137,8 @@ public class RailsFamilyFactory implements BlockFamilyFactory  {
     protected Block constructBlockForConnections(final byte connections,BlockUri uri, final BlockBuilderHelper blockBuilder,
                                                  BlockFamilyDefinition definition, TByteObjectMap<String>[] basicBlocks) {
         int connectionCount = SideBitFlag.getSides(connections).size();
+        if(connectionCount >  basicBlocks.length -1 )
+            return  null;
         TByteObjectMap<String> possibleBlockDefinitions = basicBlocks[connectionCount];
         final TByteObjectIterator<String> blockDefinitionIterator = possibleBlockDefinitions.iterator();
         while (blockDefinitionIterator.hasNext()) {

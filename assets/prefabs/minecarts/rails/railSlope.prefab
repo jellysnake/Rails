@@ -15,8 +15,8 @@
                     }
 
                 ],
-              "start" : "TOP",
-              "end" : "BACK",
+              "start" : "FRONT",
+              "end" : "TOP",
                  "startingBinormal": [-1,0,0],
                  "rotation" : 0
             }
