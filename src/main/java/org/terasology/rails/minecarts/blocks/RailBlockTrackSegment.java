@@ -48,7 +48,15 @@ public class RailBlockTrackSegment extends TrackSegment {
         return  rotation;
     }
 
+    public  Side getStart()
+    {
+        return  start;
+    }
 
+    public  Side getEnd()
+    {
+        return  end;
+    }
 
     public RailBlockTrackSegment(CubicBezier[] curves,BlockEntityRegistry blockEntityRegistry, PathDescriptorComponent.Descriptor descriptor, Rotation rotation, WorldProvider worldProvider, RailBlockTrackSegmentSystem railBlockTrackSegmentSystem, Vector3f startingBinormal) {
         super(curves,  startingBinormal);
@@ -62,6 +70,7 @@ public class RailBlockTrackSegment extends TrackSegment {
 
     @Override
     public boolean invertSegment(TrackSegment previous, TrackSegment next) {
+
         if(((RailBlockTrackSegment)previous).end == ((RailBlockTrackSegment)next).end.reverse())
             return true;
 
@@ -81,8 +90,15 @@ public class RailBlockTrackSegment extends TrackSegment {
         EntityRef nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
         BlockComponent block = nextRef.getComponent(BlockComponent.class);
 
-        if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily))
-            return  null;
+        if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
+
+            blockPosition.add(Vector3i.down());
+            nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
+            block = nextRef.getComponent(BlockComponent.class);
+            if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
+                return null;
+            }
+        }
 
         return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI()),nextRef);
     }
@@ -98,8 +114,15 @@ public class RailBlockTrackSegment extends TrackSegment {
         EntityRef nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
         BlockComponent block = nextRef.getComponent(BlockComponent.class);
 
-        if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily))
-            return  null;
+        if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
+
+            blockPosition.add(Vector3i.down());
+            nextRef =  blockEntityRegistry.getBlockEntityAt(blockPosition);
+            block = nextRef.getComponent(BlockComponent.class);
+            if(!(block.getBlock().getBlockFamily() instanceof  RailsUpdatesFamily)) {
+                return null;
+            }
+        }
 
         return  new TrackSegmentPair(railBlockTrackSegmentSystem.getSegment(block.getBlock().getURI()),nextRef);
     }

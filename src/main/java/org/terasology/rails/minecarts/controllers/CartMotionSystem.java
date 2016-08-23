@@ -21,6 +21,7 @@ import org.terasology.core.logic.door.DoorSystem;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
@@ -85,11 +86,11 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         for (EntityRef railVehicle : entityManager.getEntitiesWith(RailVehicleComponent.class,RigidBodyComponent.class)) {
             RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
 
-                updateCart(railVehicle);
+                updateCart(railVehicle,delta);
         }
     }
 
-    public  void  updateCart(EntityRef railVehicle)
+    public  void  updateCart(EntityRef railVehicle,float delta)
     {
 
         LocationComponent location = railVehicle.getComponent(LocationComponent.class);
@@ -109,24 +110,23 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             if(ref.hasComponent(RailComponent.class))
             {
                 railVehicleComponent.currentSegment = ref;
+                railVehicleComponent.previousSegment = null;
 
-                RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(block.getURI());
+                RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(block.getURI(),null);
                 railVehicleComponent.t = segment.getNearestT(hit.getHitPoint(),hit.getBlockPosition().toVector3f(),segment.getRotation().getQuat4f());
-                rigidBodyComponent.velocity = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),ref).mul(5f);
+                rigidBodyComponent.velocity = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),ref).mul(9f);
                 railVehicle.saveComponent(railVehicleComponent);
-
-
             }
 
         }
 
 
-        repositionAxis(railVehicle);
+        repositionAxis(railVehicle, delta);
 
 
     }
 
-    public  void repositionAxis(EntityRef railVehicle)
+    public  void repositionAxis(EntityRef railVehicle,float delta)
     {
         LocationComponent location = railVehicle.getComponent(LocationComponent.class);
         RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
@@ -136,16 +136,20 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         {
 
             BlockComponent blockComponent = railVehicleComponent.currentSegment.getComponent(BlockComponent.class);
+
             if(blockComponent == null)
             {
                 railVehicleComponent.currentSegment = null;
                 railVehicle.saveComponent(railVehicleComponent);
                 return;
             }
+            RailBlockTrackSegment segment =getRailBlockTrackSegment(railVehicleComponent.previousSegment,railVehicleComponent.currentSegment);
 
-            RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(blockComponent.getBlock().getURI());
 
             Vector3f position = segment.getPoint(railVehicleComponent.t,blockComponent.getPosition().toVector3f(),segment.getRotation().getQuat4f(),railVehicleComponent.currentSegment);
+            if(position == null)
+                return;
+
             MeshComponent mesh = railVehicle.getComponent(MeshComponent.class);
             position.y = mesh.mesh.getAABB().getMax().y/2.0f + position.y + .05f;
 
@@ -153,35 +157,43 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             Vector3f tangent = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),railVehicleComponent.currentSegment);
 
 
-            location.setWorldPosition(position);
-            location.setLocalRotation( Quat4f.shortestArcQuat(Vector3f.north(),tangent));
-
-
             TrackSegment.TrackSegmentPair proceedingPair;
 
             if( tangent.dot(rigidBodyComponent.velocity) > 0) {
 
-                rigidBodyComponent.velocity= project(rigidBodyComponent.velocity,tangent);
-                proceedingPair = segment.getTrackSegment(railVehicleComponent.t +   rigidBodyComponent.velocity.length() * time.getGameDelta(), railVehicleComponent.currentSegment);
+                rigidBodyComponent.velocity = tangent;//project(rigidBodyComponent.velocity,tangent);
+                proceedingPair = segment.getTrackSegment(railVehicleComponent.t +   rigidBodyComponent.velocity.length() *delta, railVehicleComponent.currentSegment);
 
                 rigidBodyComponent.linearFactor.set(new Vector3f(tangent));
             }
             else {
 
-                rigidBodyComponent.velocity= project(rigidBodyComponent.velocity,new Vector3f(tangent).invert());
-                proceedingPair = segment.getTrackSegment(railVehicleComponent.t - rigidBodyComponent.velocity.length() * time.getGameDelta(), railVehicleComponent.currentSegment);
+                rigidBodyComponent.velocity= new Vector3f(tangent).invert();//project(rigidBodyComponent.velocity,new Vector3f(tangent).invert());
+                proceedingPair = segment.getTrackSegment(railVehicleComponent.t - rigidBodyComponent.velocity.length() * delta, railVehicleComponent.currentSegment);
 
-                rigidBodyComponent.linearFactor.set(new Vector3f(tangent));//new Vector3f(rigidBodyComponent.velocity).normalize());
+                rigidBodyComponent.linearFactor.set(new Vector3f(tangent).invert());//new Vector3f(rigidBodyComponent.velocity).normalize());
 
             }
             if(proceedingPair == null)
                 return;
 
-           // rigidBodyComponent.velocity.add(new Vector3f(position).sub(location.getWorldPosition()));
 
-            rigidBodyComponent.kinematic = false;
+            location.setWorldPosition(position);
+            location.setLocalRotation( Quat4f.shortestArcQuat(Vector3f.north(),tangent));
+
+            //rigidBodyComponent.velocity.add(new Vector3f(position).sub(location.getWorldPosition()));
+
+            if(railVehicleComponent.currentSegment != proceedingPair.association)
+            {
+                railVehicleComponent.previousSegment = railVehicleComponent.currentSegment;
+
+            }
+
+            rigidBodyComponent.kinematic = true;
             railVehicleComponent.t = proceedingPair.t;
             railVehicleComponent.currentSegment = proceedingPair.association;
+
+
 
             railVehicle.saveComponent(railVehicleComponent);
             railVehicle.saveComponent(rigidBodyComponent);
@@ -189,6 +201,17 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
             railVehicle.saveComponent(location);
 
         }
+    }
+
+    private  RailBlockTrackSegment getRailBlockTrackSegment(EntityRef previous, EntityRef current)
+    {
+        BlockComponent currentBlockComponent = current.getComponent(BlockComponent.class);
+        RailBlockTrackSegment previousSegment = null;
+        if(previous != null) {
+            BlockComponent previousBlockComponent = previous.getComponent(BlockComponent.class);
+            previousSegment =   railBlockTrackSegment.getSegment(previousBlockComponent.getBlock().getURI());
+        }
+        return railBlockTrackSegment.getSegment(currentBlockComponent.getBlock().getURI(),previousSegment);
     }
 
     public final Vector3f project(Vector3f u, Vector3f v)

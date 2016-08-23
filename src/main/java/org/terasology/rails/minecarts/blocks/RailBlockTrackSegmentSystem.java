@@ -53,6 +53,11 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
 
     public  RailBlockTrackSegment getSegment(BlockUri uri)
     {
+        return  getSegment(uri,null);
+    }
+
+    public  RailBlockTrackSegment getSegment(BlockUri uri,RailBlockTrackSegment previous )
+    {
         byte connection = getConnections(uri);
         Block block = blockManager.getBlock(uri);
         BlockFamily family =  block.getBlockFamily();
@@ -82,6 +87,28 @@ public class RailBlockTrackSegmentSystem extends BaseComponentSystem {
                 }
 
                 trackSegment.put(connection,segments);
+            }
+
+
+            RailBlockTrackSegment[] segments = trackSegment.get(connection);
+            if(previous== null)
+                return segments[0];
+            for(int x = 0; x < segments.length; x++)
+            {
+                if(previous.invertSegment(previous,segments[x]))
+                {
+                    if(previous.getStart().reverse() == segments[x].getStart())
+                        return  segments[x];
+                    if(previous.getEnd().reverse() == segments[x].getEnd())
+                        return  segments[x];
+                }
+                else
+                {
+                    if(previous.getStart().reverse() == segments[x].getEnd())
+                        return  segments[x];
+                    if(previous.getEnd().reverse() == segments[x].getStart())
+                        return  segments[x];
+                }
             }
             return  trackSegment.get(connection)[0];
         }
