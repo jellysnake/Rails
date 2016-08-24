@@ -85,8 +85,6 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
     @Override
     public void update(float delta) {
         for (EntityRef railVehicle : entityManager.getEntitiesWith(RailVehicleComponent.class,RigidBodyComponent.class)) {
-            RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
-
                 updateCart(railVehicle,delta);
         }
     }
@@ -97,7 +95,8 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         LocationComponent location = railVehicle.getComponent(LocationComponent.class);
         RigidBodyComponent rigidBodyComponent = railVehicle.getComponent(RigidBodyComponent.class);
         RailVehicleComponent railVehicleComponent = railVehicle.getComponent(RailVehicleComponent.class);
-
+        if(!railVehicleComponent.isCreated)
+            return;
 
         if(railVehicleComponent.currentSegment == null)
         {
@@ -115,6 +114,8 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
                 RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(block.getURI(),null);
                 railVehicleComponent.t = segment.getNearestT(hit.getHitPoint(),hit.getBlockPosition().toVector3f(),segment.getRotation().getQuat4f());
                 rigidBodyComponent.velocity = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),ref).mul(1f);
+
+                rigidBodyComponent.collidesWith.remove(StandardCollisionGroup.WORLD);
                 railVehicle.saveComponent(railVehicleComponent);
             }
 
@@ -164,33 +165,27 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
 
             TrackSegment.TrackSegmentPair proceedingPair;
-
+            rigidBodyComponent.velocity.add(project(Vector3f.down().mul(9.8f).mul(delta),tangent));
             if( tangent.dot(rigidBodyComponent.velocity) > 0) {
-
-                rigidBodyComponent.velocity = new Vector3f(tangent).mul(rigidBodyComponent.velocity.length());//project(rigidBodyComponent.velocity,tangent);
-                proceedingPair = segment.getTrackSegment(railVehicleComponent.t +   rigidBodyComponent.velocity.length() *delta, railVehicleComponent.currentSegment);
-
+                proceedingPair = segment.getTrackSegment(railVehicleComponent.t +   project(rigidBodyComponent.velocity,new Vector3f(tangent)).length() *delta, railVehicleComponent.currentSegment);
                 rigidBodyComponent.linearFactor.set(new Vector3f(tangent));
             }
             else {
 
-                rigidBodyComponent.velocity= new Vector3f(tangent).invert().mul(rigidBodyComponent.velocity.length());//project(rigidBodyComponent.velocity,new Vector3f(tangent).invert());
-                proceedingPair = segment.getTrackSegment(railVehicleComponent.t - rigidBodyComponent.velocity.length() * delta, railVehicleComponent.currentSegment);
-
+                proceedingPair = segment.getTrackSegment(railVehicleComponent.t - project(rigidBodyComponent.velocity,new Vector3f(tangent)).length() * delta, railVehicleComponent.currentSegment);
                 rigidBodyComponent.linearFactor.set(new Vector3f(tangent).invert());//new Vector3f(rigidBodyComponent.velocity).normalize());
 
             }
+
             if(proceedingPair == null)
                 return;
 
-
-            location.setWorldPosition(position);
-
             Quat4f horizontalRotation =Quat4f.shortestArcQuat(Vector3f.north(),new Vector3f(tangent).setY(0).normalize());
             Quat4f verticalRotation = Quat4f.shortestArcQuat(new Vector3f(tangent).setY(0).normalize(),new Vector3f(tangent));
-
             verticalRotation.mul(horizontalRotation);
+
             location.setLocalRotation( verticalRotation);
+            location.setWorldPosition(position);
 
             //rigidBodyComponent.velocity.add(new Vector3f(position).sub(location.getWorldPosition()));
 
@@ -203,7 +198,6 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
             railVehicle.saveComponent(railVehicleComponent);
             railVehicle.saveComponent(rigidBodyComponent);
-            railVehicle.send(new ChangeVelocityEvent(rigidBodyComponent.velocity));
             railVehicle.saveComponent(location);
 
         }
@@ -212,7 +206,7 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
     public final Vector3f project(Vector3f u, Vector3f v)
     {
-        return new Vector3f(u).mul(u.dot(v)/ (u.length() * u.length()));
+        return new Vector3f(v).mul(new Vector3f(u).dot(v)/ (v.length() * v.length()));
     }
 
 
