@@ -185,7 +185,12 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
 
             location.setWorldPosition(position);
-            location.setLocalRotation( Quat4f.shortestArcQuat(Vector3f.north(),tangent));
+
+            Quat4f horizontalRotation =Quat4f.shortestArcQuat(Vector3f.north(),new Vector3f(tangent).setY(0).normalize());
+            Quat4f verticalRotation = Quat4f.shortestArcQuat(new Vector3f(tangent).setY(0).normalize(),new Vector3f(tangent));
+
+            verticalRotation.mul(horizontalRotation);
+            location.setLocalRotation( verticalRotation);
 
             //rigidBodyComponent.velocity.add(new Vector3f(position).sub(location.getWorldPosition()));
 
@@ -204,18 +209,6 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         }
     }
 
-   /* private  RailBlockTrackSegment getRailBlockTrackSegment(EntityRef previous, EntityRef current)
-    {
-        Side direction = null;
-        BlockComponent currentBlockComponent = current.getComponent(BlockComponent.class);
-        RailBlockTrackSegment previousSegment = null;
-        if(previous != null) {
-            BlockComponent previousBlockComponent = previous.getComponent(BlockComponent.class);
-            direction = Side.inDirection(new Vector3i(currentBlockComponent.getPosition()).sub(previousBlockComponent.getPosition()).toVector3f());
-            previousSegment = railBlockTrackSegment.getSegment(previousBlockComponent.getBlock().getURI(),direction);
-        }
-        return railBlockTrackSegment.getSegment(currentBlockComponent.getBlock().getURI(),direction,previousSegment);
-    }*/
 
     public final Vector3f project(Vector3f u, Vector3f v)
     {
