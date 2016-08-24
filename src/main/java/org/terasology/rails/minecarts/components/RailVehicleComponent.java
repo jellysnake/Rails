@@ -40,5 +40,9 @@ public class RailVehicleComponent implements Component {
     public RailBlockTrackSegment trackSegment;
     public  float t;
 
+    public EntityRef characterInsideCart;
+
+    public  boolean isCreated;
+
 
 }

@@ -114,7 +114,7 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
                 RailBlockTrackSegment segment = railBlockTrackSegment.getSegment(block.getURI(),null);
                 railVehicleComponent.t = segment.getNearestT(hit.getHitPoint(),hit.getBlockPosition().toVector3f(),segment.getRotation().getQuat4f());
-                rigidBodyComponent.velocity = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),ref).mul(9f);
+                rigidBodyComponent.velocity = segment.getTangent(railVehicleComponent.t,segment.getRotation().getQuat4f(),ref).mul(1f);
                 railVehicle.saveComponent(railVehicleComponent);
             }
 
@@ -167,14 +167,14 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
             if( tangent.dot(rigidBodyComponent.velocity) > 0) {
 
-                rigidBodyComponent.velocity = tangent;//project(rigidBodyComponent.velocity,tangent);
+                rigidBodyComponent.velocity = new Vector3f(tangent).mul(rigidBodyComponent.velocity.length());//project(rigidBodyComponent.velocity,tangent);
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t +   rigidBodyComponent.velocity.length() *delta, railVehicleComponent.currentSegment);
 
                 rigidBodyComponent.linearFactor.set(new Vector3f(tangent));
             }
             else {
 
-                rigidBodyComponent.velocity= new Vector3f(tangent).invert();//project(rigidBodyComponent.velocity,new Vector3f(tangent).invert());
+                rigidBodyComponent.velocity= new Vector3f(tangent).invert().mul(rigidBodyComponent.velocity.length());//project(rigidBodyComponent.velocity,new Vector3f(tangent).invert());
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t - rigidBodyComponent.velocity.length() * delta, railVehicleComponent.currentSegment);
 
                 rigidBodyComponent.linearFactor.set(new Vector3f(tangent).invert());//new Vector3f(rigidBodyComponent.velocity).normalize());

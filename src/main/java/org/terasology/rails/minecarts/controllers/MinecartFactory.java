@@ -60,7 +60,7 @@ public class MinecartFactory {
         LocationComponent minecartLocation = entity.getComponent(LocationComponent.class);
         if (minecartLocation != null) {
             RailVehicleComponent railVehicle = entity.getComponent(RailVehicleComponent.class);
-            //railVehicle.isCreated = true;
+            railVehicle.isCreated = true;
             //railVehicle.drive = 0;
             //railVehicle.pathDirection = new Vector3f();
             //railVehicle.direction = new Vector3f(1f, 1f, 1f);
@@ -80,7 +80,7 @@ public class MinecartFactory {
         LocationComponent minecartLocation = entity.getComponent(LocationComponent.class);
         if (minecartLocation != null) {
             RailVehicleComponent railVehicle = entity.getComponent(RailVehicleComponent.class);
-            //railVehicle.isCreated = true;
+            railVehicle.isCreated = true;
             //railVehicle.drive = 0;
            // railVehicle.pathDirection = new Vector3f();
             //railVehicle.direction = new Vector3f(1f, 1f, 1f);
