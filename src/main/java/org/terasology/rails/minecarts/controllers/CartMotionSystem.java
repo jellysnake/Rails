@@ -21,6 +21,7 @@ import org.terasology.core.logic.door.DoorSystem;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.event.EventPriority;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
@@ -40,6 +41,7 @@ import org.terasology.physics.Physics;
 import org.terasology.physics.StandardCollisionGroup;
 import org.terasology.physics.components.RigidBodyComponent;
 import org.terasology.physics.events.ChangeVelocityEvent;
+import org.terasology.physics.events.CollideEvent;
 import org.terasology.physics.events.MovedEvent;
 import org.terasology.rails.minecarts.blocks.RailBlockTrackSegment;
 import org.terasology.rails.minecarts.blocks.RailBlockTrackSegmentSystem;
@@ -60,6 +62,9 @@ import org.terasology.world.block.BlockComponent;
 public class CartMotionSystem extends BaseComponentSystem implements UpdateSubscriberSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(CartMotionSystem.class);
+    public  static  final  float GRAVITY = 4.9f;
+    public  static  final  float FRICTION_COFF = .02f;
+
 
     @In
     private Time time;
@@ -165,19 +170,23 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
 
             TrackSegment.TrackSegmentPair proceedingPair;
 
-            railVehicleComponent.velocity.add( project(Vector3f.down().mul(15f).mul(delta),tangent));
-            railVehicleComponent.velocity = project(railVehicleComponent.velocity,tangent);
+            Vector3f gravity = Vector3f.down().mul(9.8f).mul(delta);
+            railVehicleComponent.velocity.add(project(gravity,tangent));
+
+            Vector3f friction = project(gravity,normal).invert().mul(FRICTION_COFF);
+
+            float mag = railVehicleComponent.velocity.length() - friction.length() ;
+            railVehicleComponent.velocity = project(railVehicleComponent.velocity,tangent).normalize().mul(mag);
             rigidBodyComponent.linearFactor.set(new Vector3f(tangent));
+
 
             if( tangent.dot(railVehicleComponent.velocity) > 0) {
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t +  railVehicleComponent.velocity.length() *delta, railVehicleComponent.currentSegment);
 
             }
             else {
-
                 proceedingPair = segment.getTrackSegment(railVehicleComponent.t -  railVehicleComponent.velocity.length() * delta, railVehicleComponent.currentSegment);
                 //rigidBodyComponent.linearFactor.set(new Vector3f(tangent).invert());//new Vector3f(rigidBodyComponent.velocity).normalize());
-
             }
             //rigidBodyComponent.velocity = railVehicleComponent.velocity;
 
@@ -208,9 +217,22 @@ public class CartMotionSystem extends BaseComponentSystem implements UpdateSubsc
         }
     }
 
+    @ReceiveEvent(components = {RailVehicleComponent.class, LocationComponent.class}, priority = EventPriority.PRIORITY_HIGH)
+    public void onBump(CollideEvent event, EntityRef entity) {
+        RailVehicleComponent railVehicle = entity.getComponent(RailVehicleComponent.class);
+        if (railVehicle == null) {
+            return;
+        }
 
+        if (railVehicle.characterInsideCart != null && railVehicle.characterInsideCart.equals(event.getOtherEntity())) {
+            return;
+        }
+
+    }
     public final Vector3f project(Vector3f u, Vector3f v)
     {
+        if(v.lengthSquared() == 0.0f)
+            return Vector3f.zero();
         return new Vector3f(v).mul(new Vector3f(u).dot(v)/ (v.lengthSquared()));
     }
 
