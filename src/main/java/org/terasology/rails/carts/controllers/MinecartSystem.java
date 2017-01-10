@@ -29,7 +29,6 @@ import org.terasology.input.binds.movement.ForwardsMovementAxis;
 import org.terasology.input.binds.movement.VerticalMovementAxis;
 import org.terasology.logic.characters.events.ActivationRequest;
 import org.terasology.logic.common.ActivateEvent;
-import org.terasology.logic.inventory.InventoryManager;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.particles.BlockParticleEffectComponent;
 import org.terasology.logic.players.LocalPlayer;
@@ -57,7 +56,7 @@ import java.util.Map;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class MinecartSystem extends BaseComponentSystem implements UpdateSubscriberSystem {
-    private static final Vector3f FREE_MOTION   = new Vector3f(1f, 1f, 1f);
+    private static final Vector3f FREE_MOTION = new Vector3f(1f, 1f, 1f);
     private static final Vector3f LOCKED_MOTION = new Vector3f(0f, 0f, 0f);
     private static final Vector3f UNDER_MINECART_DIRECTION = new Vector3f(0f, -1f, 0f);
 
@@ -69,8 +68,6 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
     private Physics physics;
     @In
     private LocalPlayer localPlayer;
-    @In
-    private InventoryManager inventoryManager;
     @In
     private org.terasology.engine.Time time;
 
@@ -117,7 +114,7 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
         motionState.angularFactor.set(rigidBody.angularFactor);
 
         if (!railVehicleComponent.pathDirection.equals(FREE_MOTION) || !railVehicleComponent.pathDirection.equals(LOCKED_MOTION)) {
-            BlockInfo blockPossibleSlope = getBlockInDirection(position, new Vector3f(railVehicleComponent.direction.x , -1f, railVehicleComponent.direction.z), 1.2f);
+            BlockInfo blockPossibleSlope = getBlockInDirection(position, new Vector3f(railVehicleComponent.direction.x, -1f, railVehicleComponent.direction.z), 1.2f);
             if (blockPossibleSlope.isRails() && blockPossibleSlope.isSlope()) {
                 slopeFactor = 1;
                 motionState.nextBlockIsSlope = true;
@@ -203,8 +200,8 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
             tv.y = 0;
             float p = drive * 0.01f;
             //float volume = ((tv.length() / p) * 0.01f)/10f;
-           // logger.info("timr: " + soundProgress);
-           // logger.info("volume: " + volume);
+            // logger.info("timr: " + soundProgress);
+            // logger.info("volume: " + volume);
             //audioManager.
             railVehicle.send(new PlaySoundEvent(railVehicle, Assets.getSound("rails:vehicle").get(), 0.2f));
             soundStack.put(railVehicle, currentTime);
@@ -246,7 +243,7 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
             entity.saveComponent(location);
         }
         rotateVehicles(rb.velocity, railVehicleComponent);
-     }
+    }
 
     @ReceiveEvent(components = {ClientComponent.class}, priority = EventPriority.PRIORITY_HIGH)
     public void updateVerticalMovement(VerticalMovementAxis event, EntityRef entity) {
@@ -298,7 +295,7 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
             }
             railVehicleComponent.drive += value * railVehicleComponent.changeDriveByStep;
 
-            if (railVehicleComponent.drive > railVehicleComponent.maxDrive)  {
+            if (railVehicleComponent.drive > railVehicleComponent.maxDrive) {
                 railVehicleComponent.drive = railVehicleComponent.maxDrive;
             } else if (railVehicleComponent.drive < 0) {
                 railVehicleComponent.drive = 0;
@@ -416,7 +413,7 @@ public class MinecartSystem extends BaseComponentSystem implements UpdateSubscri
 
         fixedPosition.y = block.hitPoint().y + railVehicleMaxExtends.y / 2 + 0.05f;
 
-       // }
+        // }
         /*if (!block.isSlope() && !motionState.nextBlockIsSlope) {
             float halfHeight = minecartMaxExtends.y/2;
             float maxBlockHeight = block.getBlockPosition().y + block.getBlock().getCollisionOffset().y;

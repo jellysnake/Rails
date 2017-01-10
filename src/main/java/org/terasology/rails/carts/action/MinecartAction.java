@@ -31,9 +31,8 @@ import org.terasology.logic.characters.MovementMode;
 import org.terasology.logic.characters.events.SetMovementModeEvent;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.health.DestroyEvent;
-import org.terasology.logic.inventory.InventoryComponent;
-import org.terasology.logic.inventory.InventoryManager;
 import org.terasology.logic.inventory.ItemComponent;
+import org.terasology.logic.inventory.events.GiveItemEvent;
 import org.terasology.logic.location.Location;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.players.event.OnPlayerSpawnedEvent;
@@ -67,8 +66,6 @@ public class MinecartAction extends BaseComponentSystem {
     private EntityManager entityManager;
     @In
     private WorldProvider worldProvider;
-    @In
-    private InventoryManager inventoryManager;
     @In
     private BlockManager blockManager;
     @In
@@ -105,12 +102,12 @@ public class MinecartAction extends BaseComponentSystem {
     }
 
     @ReceiveEvent
-    public void onPlayerSpawn(OnPlayerSpawnedEvent event, EntityRef player, InventoryComponent inventory) {
+    public void onPlayerSpawn(OnPlayerSpawnedEvent event, EntityRef player) {
         BlockItemFactory blockFactory = new BlockItemFactory(entityManager);
-        inventoryManager.giveItem(player, player, entityManager.create("rails:minecart"));
-        inventoryManager.giveItem(player, player, entityManager.create("rails:loco"));
-        inventoryManager.giveItem(player, player, entityManager.create("rails:wrench"));
-        inventoryManager.giveItem(player, player, blockFactory.newInstance(blockManager.getBlockFamily("rails:Rails"), 99));
+        entityManager.create("rails:minecart").send(new GiveItemEvent(player));
+        entityManager.create("rails:loco").send(new GiveItemEvent(player));
+        entityManager.create("rails:wrench").send(new GiveItemEvent(player));
+        blockFactory.newInstance(blockManager.getBlockFamily("rails:Rails"), 99).send(new GiveItemEvent(player));
     }
 
     @ReceiveEvent(components = {RailVehicleComponent.class, LocationComponent.class}, priority = EventPriority.PRIORITY_HIGH)
